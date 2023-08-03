@@ -1601,5 +1601,9 @@
       <Alias>DSLL</Alias>
       <Alias>SFLR</Alias>
     </LogAliasEntry>
+    <LogAliasEntry>
+      <PrimaryLog>DPHI</PrimaryLog>
+      <Alias>SHEP_DPHI_271</Alias>
+    </LogAliasEntry>
   </LogCurveAliases>
 </LogAliasTemplate>

@@ -97,24 +97,36 @@ class Log(LASFile):
             aliases = [alias.text for alias in log_alias_entry.findall("Alias")]
             alias_mappings[primary_log] = aliases
 
-        if 'RHOB' not in self.keys() and 'DPHI' in self.keys():
-            calculated_rho = np.empty(len(self[0]))
-            non_null_depth_index=np.where(~np.isnan(self['DPHI']))[0]
-            non_null_depths = self['DPHI'][non_null_depth_index]
-            calculated_rho[non_null_depth_index] = \
-                      drho_matrix - (drho_matrix - 1) * non_null_depths
+        # Change the names of the keys based on alias mappings and keep only the first primary log if there are multiple
+        processed_keys = set()
+        for primary_log, aliases in alias_mappings.items():
+            for alias in aliases:
+                if alias in self.keys() and alias not in processed_keys:
+                    self[primary_log] = self[alias]
+                    processed_keys.add(alias)
+                    break
 
-            self.append_curve('RHOB', calculated_rho, unit = 'g/cc',
-                       value = '',
-                       descr = 'Calculated bulk density from density \
-                               porosity assuming rho matrix = %.2f' % \
-                               drho_matrix)
+        if 'RHOB' not in self.keys() and 'DPHI' in self.keys():
+                non_null_depth_mask = (self['DPHI'] != -999.25)
+                non_null_depths = self['DPHI'][non_null_depth_mask]
+                calculated_rho = np.empty(len(self[0]))
+                calculated_rho[non_null_depth_mask] = drho_matrix - (drho_matrix - 1) * non_null_depths
+                self.append_curve('RHOB', calculated_rho, unit='g/cc',
+                                value='',
+                                descr='Calculated bulk density from density porosity assuming rho matrix = %.2f' % drho_matrix)
+
         # Filter the curves to keep only those that are in standard_curves list
         standard_curves = ['GR', 'NPHI', 'RHOB', 'ILD', 'PE', 'DT']
         self_keys = list(self.keys())
         for curve in self_keys:
             if curve not in standard_curves:
                 self.delete_curve(curve)
+
+        # Check if any curves from standard_curves are present after filtering
+        remaining_curves = [curve for curve in self.keys() if curve in standard_curves]
+        if not remaining_curves:
+            raise ValueError("None of the curves from the standard_curves list are present in the data.")
+
 
     def write(self, file_path, version = 2.0, wrap = False,
               STRT = None, STOP = None, STEP = None, fmt = '%10.6g', len_numeric_field=15,

@@ -1,1 +1,4 @@
 error_log/*.log
+raw_las/
+edited_las/
+processed_las/
