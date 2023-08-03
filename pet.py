@@ -114,7 +114,7 @@ class Log(LASFile):
         self_keys = list(self.keys())
         for curve in self_keys:
             if curve not in standard_curves:
-                self.pop(curve)
+                self.delete_curve(curve)
 
     def write(self, file_path, version = 2.0, wrap = False,
               STRT = None, STOP = None, STEP = None, fmt = '%10.6g', len_numeric_field=15,
