@@ -79,7 +79,6 @@ class Log(LASFile):
             1. Curve Alias is provided by the curve_alias.xml file
 
         """
-        
 
         file_dir = os.path.dirname(__file__)
         ALIAS_XML_PATH = os.path.join(file_dir, 'data', 'MCG_ALIAS_EXPORT.xml')
@@ -110,3 +109,55 @@ class Log(LASFile):
                        descr = 'Calculated bulk density from density \
                                porosity assuming rho matrix = %.2f' % \
                                drho_matrix)
+        # Filter the curves to keep only those that are in standard_curves list
+        standard_curves = ['GR', 'NPHI', 'RHOB', 'ILD', 'PE', 'DT']
+        self_keys = list(self.keys())
+        for curve in self_keys:
+            if curve not in standard_curves:
+                self.pop(curve)
+
+    def write(self, file_path, version = 2.0, wrap = False,
+              STRT = None, STOP = None, STEP = None, fmt = '%10.6g', len_numeric_field=15,
+                              header_width=80, data_section_header="~A", mnemonics_header=True):
+        """
+        Writes to las file, and overwrites if file exisits. Uses parent
+        class LASFile.write method with specified defaults.
+
+        Parameters
+        ----------
+        file_path : str
+            path to new las file.
+        version : {1.2 or 2} (default 2)
+            Version for las file
+        wrap : {True, False, None} (default False)
+            Specify to wrap data. If None, uses setting from when
+            file was read.
+        STRT : float (default None)
+            Optional override to automatic calculation using the first
+            index curve value.
+        STOP : float (default None)
+            Optional override to automatic calculation using the last
+            index curve value.
+        STEP : float (default None)
+            Optional override to automatic calculation using the first
+            step size in the index curve.
+        fmt : str (default '%10.5g')
+            Format string for numerical data being written to data
+            section.
+
+        Example
+        -------
+        >>> import petropy as ptr
+        >>> # reads sample Wolfcamp Log from las file
+        >>> log = ptr.log_data('WFMP')
+        >>> # define file path to save log
+        >>> p = 'path/to/new_file.las'
+        >>> log.write(p)
+
+        """
+        
+        with open(file_path, 'w') as f:
+            super(Log, self).write(f, version = version, wrap = wrap,
+                                   STRT = STRT, STOP = STOP,
+                                   STEP = None, fmt = fmt, len_numeric_field=len_numeric_field,
+                              header_width=header_width, data_section_header=data_section_header, mnemonics_header=mnemonics_header)
