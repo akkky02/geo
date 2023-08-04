@@ -107,7 +107,7 @@ class Log(LASFile):
                     break
 
         if 'RHOB' not in self.keys() and 'DPHI' in self.keys():
-                non_null_depth_mask = (self['DPHI'] != -999.25)
+                non_null_depth_mask = (self['DPHI'] != self.well.NULL.value)
                 non_null_depths = self['DPHI'][non_null_depth_mask]
                 calculated_rho = np.empty(len(self[0]))
                 calculated_rho[non_null_depth_mask] = drho_matrix - (drho_matrix - 1) * non_null_depths
