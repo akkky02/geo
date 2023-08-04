@@ -3,3 +3,4 @@ raw_las/*.las
 edited_las/*.las
 processed_las/*.las
 __pycache__/
+venv/
