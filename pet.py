@@ -58,7 +58,7 @@ class Log(LASFile):
         # self.tops = {}
 
 
-    def precondition(self, drho_matrix = 2.71):
+    def precondition(self, drho_matrix = 2.71, n = 15):
         """
         Preconditions log curve by aliasing names.
 
@@ -126,6 +126,31 @@ class Log(LASFile):
         remaining_curves = [curve for curve in self.keys() if curve in standard_curves]
         if not remaining_curves:
             raise ValueError("None of the curves from the standard_curves list are present in the data.")
+
+        def apply_lfilter(curve_data):
+            valid_mask = ~np.logical_or(np.isnan(curve_data), curve_data == self.well.NULL.value)
+            filtered_data = np.empty_like(curve_data)
+            filtered_data[valid_mask] = lfilter(np.ones(n) / n, 1, curve_data[valid_mask])
+            return np.where(valid_mask, filtered_data, np.nan)
+
+        if 'DT' in self.keys():
+            # Get DT curve data
+            dt = self['DT']
+
+            # Apply lfilter and add filtered curve to log
+            dt_filtered = apply_lfilter(dt)
+            self.append_curve('DT', dt_filtered, unit=self.curvesdict.get('DT').unit,
+                            descr='Lfilter applied to DT curve')
+
+        if 'RHOB' in self.keys():
+            # Get RHOB curve data
+            rhob = self['RHOB']
+
+            # Apply lfilter and add filtered curve to log
+            rhob_filtered = apply_lfilter(rhob)
+            self.append_curve('RHOB', rhob_filtered, unit=self.curvesdict.get('RHOB').unit,
+                            descr='Lfilter applied to RHOB curve')
+
 
 
     def write(self, file_path, version = 2.0, wrap = False,
