@@ -81,7 +81,7 @@ class Log(LASFile):
         """
 
         file_dir = os.path.dirname(__file__)
-        ALIAS_XML_PATH = os.path.join(file_dir, 'alias_folder', 'MCG_ALIAS_EXPORT.xml')
+        ALIAS_XML_PATH = os.path.join(file_dir, 'alias_folder', 'curve_alias.xml')
 
         if not os.path.isfile(ALIAS_XML_PATH):
             raise ValueError('Could not find alias xml at: %s' % ALIAS_XML_PATH)
