@@ -116,10 +116,10 @@ class Log(LASFile):
                                 descr='Calculated bulk density from density porosity assuming rho matrix = %.2f' % drho_matrix)
 
         # Filter the curves to keep only those that are in standard_curves list
-        standard_curves = ['DEPT', 'GR', 'NPHI', 'RHOB', 'ILD', 'PE', 'DT']
+        standard_curves = ['GR', 'NPHI', 'RHOB', 'ILD', 'PE', 'DT']
         self_keys = list(self.keys())
         for curve in self_keys:
-            if curve not in standard_curves:
+            if curve not in standard_curves and curve!= 'DEPT':
                 self.delete_curve(curve)
 
         # Check if any curves from standard_curves are present after filtering
@@ -131,6 +131,8 @@ class Log(LASFile):
             valid_mask = ~np.logical_or(np.isnan(curve_data), curve_data == self.well.NULL.value)
             filtered_data = np.empty_like(curve_data)
             filtered_data[valid_mask] = lfilter(np.ones(n) / n, 1, curve_data[valid_mask])
+            # Round the filtered data to a maximum of 4 decimal places
+            filtered_data = np.round(filtered_data, 4)
             return np.where(valid_mask, filtered_data, np.nan)
 
         if 'DT' in self.keys():
@@ -139,8 +141,10 @@ class Log(LASFile):
 
             # Apply lfilter and add filtered curve to log
             dt_filtered = apply_lfilter(dt)
-            self.append_curve('DT', dt_filtered, unit=self.curvesdict.get('DT').unit,
-                            descr='Lfilter applied to DT curve')
+            self['DT'] = dt_filtered
+            self.curvesdict.get('DT').descr = 'Lfilter applied to DT curve' 
+            # self.append_curve('DT', dt_filtered, unit=self.curvesdict.get('DT').unit,
+            #                 descr='Lfilter applied to DT curve')
 
         if 'RHOB' in self.keys():
             # Get RHOB curve data
@@ -148,9 +152,10 @@ class Log(LASFile):
 
             # Apply lfilter and add filtered curve to log
             rhob_filtered = apply_lfilter(rhob)
-            self.append_curve('RHOB', rhob_filtered, unit=self.curvesdict.get('RHOB').unit,
-                            descr='Lfilter applied to RHOB curve')
-
+            self['RHOB'] = rhob_filtered
+            self.curvesdict.get('RHOB').descr = 'Lfilter applied to RHOB curve'
+            # self.append_curve('RHOB', rhob_filtered, unit=self.curvesdict.get('RHOB').unit,
+            #                 descr='Lfilter applied to RHOB curve')
 
 
     def write(self, file_path, version = 2.0, wrap = False,
