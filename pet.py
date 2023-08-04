@@ -116,7 +116,7 @@ class Log(LASFile):
                                 descr='Calculated bulk density from density porosity assuming rho matrix = %.2f' % drho_matrix)
 
         # Filter the curves to keep only those that are in standard_curves list
-        standard_curves = ['GR', 'NPHI', 'RHOB', 'ILD', 'PE', 'DT']
+        standard_curves = ['DEPT', 'GR', 'NPHI', 'RHOB', 'ILD', 'PE', 'DT']
         self_keys = list(self.keys())
         for curve in self_keys:
             if curve not in standard_curves:
