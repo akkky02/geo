@@ -1,5 +1,5 @@
 error_log/
-raw_las/
+raw_las/*.las
 edited_las/
 processed_las/
 __pycache__/
