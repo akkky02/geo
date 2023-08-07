@@ -1,6 +1,6 @@
 error_log/
 raw_las/*.las
-edited_las/
-processed_las/
+edited_las/*.las
+processed_las/*.las
 __pycache__/
 venv/
