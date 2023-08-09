@@ -1321,8 +1321,8 @@ class Log(LASFile):
         if hc_class == 'OIL':
             if oil_curve['mnemonic'] not in self.keys():
                 self.append_curve(oil_curve['mnemonic'], oil_curve['data'],
-                               unit = curve['unit'],
-                               descr = curve['descr'])
+                               unit = oil_curve['unit'],
+                               descr = oil_curve['descr'])
 
         gas_curves = [
             {'mnemonic': 'GIP', 'data': np.copy(nulls),
