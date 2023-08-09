@@ -644,26 +644,26 @@ class Log(LASFile):
                                         descr=curve['descr'])
 
     def multimineral_model(self, top = 0, bottom = 100000,
-                            gr_matrix = 10, nphi_matrix = 0, gr_clay = 450, rho_clay = 2.64,
-                            nphi_clay = 0.65, pe_clay = 3, rma = 180, rt_clay = 80,
-                            vclay_linear_weight = 1, vclay_clavier_weight = 0.5,
-                            vclay_larionov_weight = 0.5, vclay_nphi_weight = 1,
-                            vclay_nphi_rhob_weight = 1, vclay_cutoff = 0.1, rho_om = 1.15,
-                            nphi_om = 0.6, pe_om = 0.2, ro = 1.6, lang_press = 670,
-                            passey_nphi_weight = 1, passey_rhob_weight = 1, passey_lom = 10,
-                            passey_baseline_res = 40, passey_baseline_rhob = 2.65,
-                            passey_baseline_nphi = 0, schmoker_weight = 1,
-                            schmoker_slope =  0.7257, schmoker_baseline_rhob = 2.6,
-                            rho_pyr = 5, nphi_pyr = 0.13, pe_pyr = 13, om_pyrite_slope = 0.2,
-                            include_qtz = 'YES', rho_qtz = 2.65, nphi_qtz = -0.04,
-                            pe_qtz = 1.81, include_clc = 'YES', rho_clc = 2.71, nphi_clc = 0,
-                            pe_clc = 5.08, include_dol = 'YES', rho_dol = 2.87,
-                            nphi_dol = 0.04, pe_dol = 3.14, include_x = 'NO',
-                            name_x = 'Gypsum', name_log_x = 'GYP', rho_x = 2.35,
-                            nphi_x = 0.507, pe_x = 4.04, pe_fl = 0, m = 1.8, n = 2, a = 1,
-                            archie_weight = 1, indonesia_weight = 0, simandoux_weight = 0,
-                            modified_simandoux_weight = 0, waxman_smits_weight = 0, cec = -1,
-                            buckles_parameter = -1):
+    gr_matrix = 10, nphi_matrix = 0, gr_clay = 350, rho_clay = 2.64,
+    nphi_clay = 0.65, pe_clay = 4, rma = 180, rt_clay = 80,
+    vclay_linear_weight = 1, vclay_clavier_weight = 0.5,
+    vclay_larionov_weight = 0.5, vclay_nphi_weight = 1,
+    vclay_nphi_rhob_weight = 1, vclay_cutoff = 0.1, rho_om = 1.15,
+    nphi_om = 0.6, pe_om = 0.2, ro = 1.6, lang_press = 670,
+    passey_nphi_weight = 1, passey_rhob_weight = 1, passey_lom = 10,
+    passey_baseline_res = 40, passey_baseline_rhob = 2.65,
+    passey_baseline_nphi = 0, schmoker_weight = 1,
+    schmoker_slope =  0.7257, schmoker_baseline_rhob = 2.6,
+    rho_pyr = 5, nphi_pyr = 0.13, pe_pyr = 13, om_pyrite_slope = 0.2,
+    include_qtz = 'YES', rho_qtz = 2.65, nphi_qtz = -0.04,
+    pe_qtz = 1.81, include_clc = 'YES', rho_clc = 1.71, nphi_clc = 0,
+    pe_clc = 5.08, include_dol = 'YES', rho_dol = 2.85,
+    nphi_dol = 0.04, pe_dol = 3.14, include_x = 'NO',
+    name_x = 'Gypsum', name_log_x = 'GYP', rho_x = 2.35,
+    nphi_x = 0.507, pe_x = 4.04, pe_fl = 0, m = 2, n = 2, a = 1,
+    archie_weight = 0, indonesia_weight = 1, simandoux_weight = 0,
+    modified_simandoux_weight = 0, waxman_smits_weight = 0, cec = -1,
+    buckles_parameter = -1):
         """
         Calculates a petrophysical lithology and porosity model for
         conventional and unconventional reservoirs. For each depth, the
@@ -1130,14 +1130,12 @@ class Log(LASFile):
             :meth:`petropy.Log.formation_multimineral_model`
                 uses multimineral_model accross formations
 
-        """       
+            """
+
         ### initialize required curves ###
         required_raw_curves = ['GR', 'NPHI', 'RHOB', 'ILD']
 
-        ### check if PE is available ###
-        # use_pe = 'PE' in self.keys()
-        # if use_pe:
-        #     required_raw_curves += ['PE']
+        ### check if PE is availble ###
         if 'PE' in self.keys():
             use_pe = True
             required_raw_curves += ['PE']
@@ -1147,35 +1145,60 @@ class Log(LASFile):
         ### check for requirements ###
         for curve in required_raw_curves:
             if curve not in self.keys():
-                raise ValueError(f'Raw curve {curve} not found and is required for multimineral_model.')
+                raise ValueError('Raw curve %s not found and is \
+                             required for multimineral_model.' % curve)
 
-        required_curves_from_fluid_properties = ['RW', 'RHO_HC', 'RHO_W', 'NPHI_HC',
-                                                'NPHI_W', 'RES_TEMP', 'NES', 'PORE_PRESS']
+        required_curves_from_fluid_properties = ['RW', 'RHO_HC',
+                                                'RHO_W', 'NPHI_HC',
+                                                'NPHI_W', 'RES_TEMP',
+                                                'NES', 'PORE_PRESS']
 
         for curve in required_curves_from_fluid_properties:
             if curve not in self.keys():
-                raise ValueError(f'Fluid Properties curve {curve} not found. Run fluid_properties before multimineral_model.')
+                raise ValueError('Fluid Properties curve %s not found.\
+                     Run fluid_properties before multimineral_model.' \
+                     % curve)
 
-        all_required_curves = required_raw_curves + required_curves_from_fluid_properties
+        all_required_curves = required_raw_curves +\
+                              required_curves_from_fluid_properties
 
         if 'BO' not in self.keys() and 'BG' not in self.keys():
-            raise ValueError('Formation Volume Factor required for multimineral_model. Run fluid_properties first.')
+            raise ValueError('Formation Volume Factor required for \
+                      multimineral_model. Run fluid_properties first.')
 
-        hc_class = 'OIL' if 'BO' in self.keys() else 'GAS'
+        if 'BO' in self.keys():
+            hc_class = 'OIL'
+        else:
+            hc_class = 'GAS'
 
         ### initialize minerals ###
-        include_qtz = include_qtz.upper()[0] == 'Y'
-        include_clc = include_clc.upper()[0] == 'Y'
-        include_dol = include_dol.upper()[0] == 'Y'
-        include_x = include_x.upper()[0] == 'Y'
-        name_log_x = name_log_x.upper() if include_x else name_log_x
+        if include_qtz.upper()[0] == 'Y':
+            include_qtz = True
+        else:
+            include_qtz = False
+
+        if include_clc.upper()[0] == 'Y':
+            include_clc = True
+        else:
+            include_clc = False
+
+        if include_dol.upper()[0] == 'Y':
+            include_dol = True
+        else:
+            include_dol = False
+
+        if include_x.upper()[0] == 'Y':
+            include_x = True
+            name_log_x = name_log_x.upper()
+        else:
+            include_x = False
 
         ## check for existence of calculated curves ###
         ### add if not found ##
         nulls = np.empty(len(self[0]))
         nulls[:] = np.nan
 
-        output_curves = output_curves = [
+        output_curves = [
             {'mnemonic': 'PHIE', 'data': np.copy(nulls), 'unit': 'v/v',
             'descr': 'Effective Porosity'},
 
@@ -1227,7 +1250,6 @@ class Log(LASFile):
             {'mnemonic': 'WTPYR', 'data': np.copy(nulls),'unit':'wt/wt',
             'descr': 'Matrix Weight Fraction Pyrite'},
         ]
-
         for curve in output_curves:
             if curve['mnemonic'] not in self.keys():
                 self.append_curve(curve['mnemonic'], curve['data'],
@@ -1299,8 +1321,8 @@ class Log(LASFile):
         if hc_class == 'OIL':
             if oil_curve['mnemonic'] not in self.keys():
                 self.append_curve(oil_curve['mnemonic'], oil_curve['data'],
-                               unit = oil_curve['unit'],
-                               descr = oil_curve['descr'])
+                               unit = curve['unit'],
+                               descr = curve['descr'])
 
         gas_curves = [
             {'mnemonic': 'GIP', 'data': np.copy(nulls),
@@ -1318,19 +1340,15 @@ class Log(LASFile):
                                    descr = curve['descr'])
 
         ### calculations over depths ###
-        # Vectorize repeated calculations over depth using NumPy arrays
-        depths = np.asarray(self[0])
-        depth_index = np.intersect1d(np.where(depths >= top)[0], np.where(depths < bottom)[0])
-
-        # Loop vectorized calculations over depth
+        depth_index = np.intersect1d(np.where(self[0] >= top)[0],
+                                     np.where(self[0] < bottom)[0])
         for i in depth_index:
-            # Skip null values
-            # if np.any(np.isnan(self[all_required_curves, i])) or np.any(np.isinf(self[all_required_curves, i])):
-            #     continue
-            is_valid = np.all(np.isfinite([self[x][i] for x in all_required_curves]))
-            if not is_valid:
-                continue
-            
+
+            ### check for null values in data, skip if true ###
+            nans = np.isnan([self[x][i] for x in all_required_curves])
+            infs = np.isinf([self[x][i] for x in all_required_curves])
+            if True in nans or True in infs: continue
+
             if i > 0:
                 sample_rate = abs(self[0][i] - self[0][i - 1])
             else:
@@ -1363,22 +1381,22 @@ class Log(LASFile):
 
                 ### clay solver ###
                 gr_index = np.clip((self['GR'][i] - gr_matrix) \
-                        / (gr_clay - gr_matrix), 0, 1)
+                           / (gr_clay - gr_matrix), 0, 1)
 
                 ### linear vclay method ###
                 vclay_linear = gr_index
 
                 ### Clavier vclay method ###
                 vclay_clavier = np.clip(1.7 - np.sqrt(3.38 - \
-                                        (gr_index + 0.7) ** 2), 0, 1)
+                                          (gr_index + 0.7) ** 2), 0, 1)
 
                 ### larionov vclay method ###
                 vclay_larionov = np.clip(0.083 * \
-                                    (2 ** (3.7 * gr_index) - 1), 0, 1)
+                                     (2 ** (3.7 * gr_index) - 1), 0, 1)
 
                 # Neutron vclay method without organic correction
                 vclay_nphi = np.clip((nphia - nphi_matrix) / \
-                                    (nphi_clay - nphi_matrix), 0, 1)
+                                     (nphi_clay - nphi_matrix), 0, 1)
 
                 # Neutron Density vclay method with organic correction
                 m1 = (nphi_fl - nphi_matrix) / (rho_fl - rhom)
@@ -1386,13 +1404,13 @@ class Log(LASFile):
                 x2 = nphi_clay + m1 * (rhom - rho_clay)
                 if x2 - nphi_matrix != 0:
                     vclay_nphi_rhob = np.clip((x1 - nphi_matrix) / \
-                                            (x2 - nphi_matrix), 0, 1)
+                                              (x2 - nphi_matrix), 0, 1)
                 else:
                     vclay_nphi_rhob = 0
 
                 vclay_weights_sum = vclay_linear_weight + \
-                    vclay_clavier_weight + vclay_larionov_weight + \
-                    vclay_nphi_weight + vclay_nphi_rhob_weight
+                       vclay_clavier_weight + vclay_larionov_weight + \
+                       vclay_nphi_weight + vclay_nphi_rhob_weight
 
                 vclay = (vclay_linear_weight * vclay_linear + \
                         vclay_clavier_weight * vclay_clavier + \
@@ -1428,12 +1446,12 @@ class Log(LASFile):
                     (schmoker_baseline_rhob - self['RHOB'][i]), 0, 1)
 
                     toc_weights = passey_nphi_weight + \
-                                passey_rhob_weight + schmoker_weight
+                                  passey_rhob_weight + schmoker_weight
 
                     ### toc in weight percent ###
                     toc = (passey_nphi_weight * toc_nphi + \
-                        passey_rhob_weight * toc_rhob + \
-                        schmoker_weight * toc_sch) / toc_weights
+                           passey_rhob_weight * toc_rhob + \
+                           schmoker_weight * toc_sch) / toc_weights
 
                     ### weight percent to volume percent ###
                     volume_om = toc / rho_om
@@ -1465,12 +1483,12 @@ class Log(LASFile):
                 ### removed effect of clay, organics, and pyrite ###
                 volume_unconventional = bvom + bvclay + bvpyr
                 rhob_clean = (self['RHOB'][i] - (rho_om * bvom + \
-                            rho_clay * bvclay + rho_pyr * bvpyr)) / \
-                            (1 - volume_unconventional)
+                              rho_clay * bvclay + rho_pyr * bvpyr)) / \
+                              (1 - volume_unconventional)
 
                 nphi_clean = (self['NPHI'][i] - (nphi_om * bvom + \
-                            nphi_clay*bvclay + nphi_pyr * bvpyr)) / \
-                            (1 - volume_unconventional)
+                              nphi_clay*bvclay + nphi_pyr * bvpyr)) / \
+                              (1 - volume_unconventional)
 
                 minerals = []
                 if use_pe:
@@ -1479,7 +1497,7 @@ class Log(LASFile):
                                 (1 - bvom - bvclay - bvpyr)
 
                     l_clean = np.asarray([rhob_clean, nphi_clean,
-                                        pe_clean, 1])
+                                          pe_clean, 1])
 
                     l = np.asarray([self['RHOB'][i],
                                     self['NPHI'][i],
@@ -1490,25 +1508,25 @@ class Log(LASFile):
                     if include_qtz:
                         minerals.append('QTZ')
                         mineral_matrix = np.asarray((rho_qtz, nphi_qtz,
-                                                    pe_qtz))
+                                                     pe_qtz))
                         c_clean = np.vstack((c_clean, mineral_matrix))
 
                     if include_clc:
                         minerals.append('CLC')
                         mineral_matrix = np.asarray((rho_clc, nphi_clc,
-                                                    pe_clc))
+                                                     pe_clc))
                         c_clean = np.vstack((c_clean, mineral_matrix))
 
                     if include_dol:
                         minerals.append('DOL')
                         mineral_matrix = np.asarray((rho_dol, nphi_dol,
-                                                    pe_dol))
+                                                     pe_dol))
                         c_clean = np.vstack((c_clean, mineral_matrix))
 
                     if include_x:
                         minerals.append('X')
                         mineral_matrix = np.asarray((rho_x, nphi_x,
-                                                    pe_x))
+                                                     pe_x))
                         c_clean = np.vstack((c_clean, mineral_matrix))
 
                     fluid_matrix = np.asarray((rho_fl, nphi_fl, pe_fl))
@@ -1549,7 +1567,7 @@ class Log(LASFile):
                 c_clean = np.delete(c_clean, 0, 0)
 
                 c_clean = np.vstack((c_clean.T,
-                                    np.ones_like(c_clean.T[0])))
+                                     np.ones_like(c_clean.T[0])))
 
                 bv_clean = nnls(c_clean, l_clean.T)[0]
 
@@ -1591,7 +1609,7 @@ class Log(LASFile):
                                         (1, 1, 1)
                                     )
                                 )
-                            ))
+                              ))
                 else:
                     c = np.hstack((c_clean, np.asarray(
                                     (
@@ -1599,7 +1617,7 @@ class Log(LASFile):
                                         (nphi_om, nphi_clay, nphi_pyr),
                                         (1, 1, 1))
                                     )
-                            ))
+                              ))
 
                 bv = np.append(bv_clean, (bvom, bvclay, bvpyr))
 
@@ -1608,10 +1626,10 @@ class Log(LASFile):
                 sse = np.dot((l - l_hat).T, l - l_hat)
 
                 prev = np.asarray((bvqtz_prev, bvclc_prev, bvdol_prev,
-                                bvx_prev, phi_prev, bvom_prev,
-                                bvclay_prev, bvpyr_prev))
+                                   bvx_prev, phi_prev, bvom_prev,
+                                   bvclay_prev, bvpyr_prev))
                 cur = np.asarray((bvqtz, bvclc, bvdol, bvx, phie, bvom,
-                                bvclay, bvpyr))
+                                  bvclay, bvpyr))
 
                 diff = np.abs(cur - prev).sum()
 
@@ -1638,7 +1656,7 @@ class Log(LASFile):
                 vom = bvom / per_matrix
                 vpyr = bvpyr / per_matrix
 
-                ### calculate weight fraction ###
+        		### calculate weight fraction ###
 
                 mass_qtz = vqtz * rho_qtz
                 mass_clc = vclc * rho_clc
@@ -1649,7 +1667,7 @@ class Log(LASFile):
                 mass_pyr = vpyr * rho_pyr
 
                 rhom = mass_qtz + mass_clc + mass_dol + mass_x + \
-                    mass_om +mass_clay + mass_pyr
+                       mass_om +mass_clay + mass_pyr
 
                 wtqtz = mass_qtz / rhom
                 wtclc = mass_clc / rhom
@@ -1676,60 +1694,60 @@ class Log(LASFile):
                 sw_ind_a = (phie ** m / self['RW'][i]) ** 0.5
                 sw_ind_b = (vclay ** (2.0 - vclay) / rt_clay) ** 0.5
                 sw_indonesia = np.clip(((sw_ind_a + sw_ind_b) ** 2.0 *\
-                            self['ILD'][i]) ** (-1 / n), 0, 1)
+                               self['ILD'][i]) ** (-1 / n), 0, 1)
 
                 ### Simandoux ###
                 c = (1.0 - vclay) * a * self['RW'][i] / (phis ** m)
                 d = c * vclay / (2.0 * rt_clay)
                 e = c / self['ILD'][i]
                 sw_simandoux = np.clip(((d**2 + e) ** 0.2 - d) ** \
-                                                        (2 / n), 0, 1)
+                                                         (2 / n), 0, 1)
 
                 ### modified Simandoux ###
                 sw_mod_simd = np.clip((0.5 * self['RW'][i] / \
-                                    phis ** m) * ((4 * phis **m) / \
-                            (self['RW'][i] * self['ILD'][i]) + \
-                            (vclay / rt_clay) ** 2) ** (1 / n) - \
-                            vclay / rt_clay, 0, 1)
+                                       phis ** m) * ((4 * phis **m) / \
+                             (self['RW'][i] * self['ILD'][i]) + \
+                             (vclay / rt_clay) ** 2) ** (1 / n) - \
+                             vclay / rt_clay, 0, 1)
 
                 ### Waxman Smits ###
                 if cec <= 0:
                     cec = 10 ** (1.9832 * vclay - 2.4473)
 
                 rw77 =self['ILD'][i]*(self['RES_TEMP'][i] + 6.8)\
-                    / 83.8
+                       / 83.8
 
                 b = 4.6 * (1 - 0.6 * np.exp(-0.77 / rw77))
                 f = a / (phis ** m)
                 qv = cec * (1 - phis) * rhom / phis
                 sw_waxman_smits = np.clip(0.5 * ((-b * qv * rw77) + \
-                                            ((b * qv * rw77) ** 2 + \
-                                            4 * f * self['RW'][i] / \
+                                              ((b * qv * rw77) ** 2 + \
+                                              4 * f * self['RW'][i] / \
                                         self['ILD'][i]) ** 0.5) \
                                             ** (2 / n), 0, 1)
 
                 ### weighted calculation with bv output ###
                 weight_saturations = archie_weight + indonesia_weight+\
-                    simandoux_weight + modified_simandoux_weight + \
-                    waxman_smits_weight
+                       simandoux_weight + modified_simandoux_weight + \
+                       waxman_smits_weight
 
                 sw = (archie_weight * sw_archie + \
-                    indonesia_weight * sw_indonesia + \
-                    simandoux_weight * sw_simandoux + \
-                    modified_simandoux_weight * sw_mod_simd + \
-                    waxman_smits_weight * sw_waxman_smits) / \
-                    weight_saturations
+                      indonesia_weight * sw_indonesia + \
+                      simandoux_weight * sw_simandoux + \
+                      modified_simandoux_weight * sw_mod_simd + \
+                      waxman_smits_weight * sw_waxman_smits) / \
+                      weight_saturations
 
                 bvw = phie * sw
                 bvh = phie * (1 - sw)
 
                 if hc_class == 'OIL':
                     oip =(7758 * 640 * sample_rate * bvh * 10 ** -6)/ \
-                        self['BO'][i] # Mmbbl per sample rate
+                           self['BO'][i] # Mmbbl per sample rate
 
                 elif hc_class == 'GAS':
                     langslope = (-0.08 * self['RES_TEMP'][i] + \
-                                2 * ro + 22.75) / 2
+                                 2 * ro + 22.75) / 2
                     gas_ads = langslope * vom * 100 * \
                     (self['PORE_PRESS'][i] / (self['PORE_PRESS'][i] + \
                     lang_press))
@@ -1742,96 +1760,99 @@ class Log(LASFile):
                     gip = gip_free + gip_ads
 
                 rho_fl = self['RHO_W'][i] * sw + \
-                        self['RHO_HC'][i] * (1 - sw)
+                         self['RHO_HC'][i] * (1 - sw)
 
                 nphi_fl = self['NPHI_W'][i] * sw + \
-                        self['NPHI_HC'][i] * (1 - sw)                
-                ### save calculations to log ###
+                          self['NPHI_HC'][i] * (1 - sw)
 
-                ### bulk volume ###
-                self['BVOM'][i] = bvom
-                self['BVCLAY'][i] = bvclay
-                self['BVPYR'][i] = bvpyr
+            ### save calculations to log ###
 
-                if include_qtz:
-                    self['BVQTZ'][i] = bvqtz
-                if include_clc:
-                    self['BVCLC'][i] = bvclc
-                if include_dol:
-                    self['BVDOL'][i] = bvdol
-                if include_x:
-                    self['BV' + name_log_x][i] = bvx
+            ### bulk volume ###
+            self['BVOM'][i] = bvom
+            self['BVCLAY'][i] = bvclay
+            self['BVPYR'][i] = bvpyr
 
-                self['BVH'][i] = bvh
-                self['BVW'][i] = bvw
+            if include_qtz:
+                self['BVQTZ'][i] = bvqtz
+            if include_clc:
+                self['BVCLC'][i] = bvclc
+            if include_dol:
+                self['BVDOL'][i] = bvdol
+            if include_x:
+                self['BV' + name_log_x][i] = bvx
 
-                ### porosity and saturations ###
-                self['PHIE'][i] = phie
-                self['SW'][i] = sw
-                self['SHC'][i] = 1 - sw
+            self['BVH'][i] = bvh
+            self['BVW'][i] = bvw
 
-                ### mineral volumes ###
-                self['VOM'][i] = vom
-                self['VCLAY'][i] = vclay
-                self['VPYR'][i] = vpyr
+            ### porosity and saturations ###
+            self['PHIE'][i] = phie
+            self['SW'][i] = sw
+            self['SHC'][i] = 1 - sw
 
-                if include_qtz:
-                    self['VQTZ'][i] = vqtz
-                if include_clc:
-                    self['VCLC'][i] = vclc
-                if include_dol:
-                    self['VDOL'][i] = vdol
-                if include_x:
-                    self['V' + name_log_x] = vx
+            ### mineral volumes ###
+            self['VOM'][i] = vom
+            self['VCLAY'][i] = vclay
+            self['VPYR'][i] = vpyr
 
-                ### weight percent ###
-                self['RHOM'][i] = rhom
-                self['TOC'][i] = toc
-                self['WTCLAY'][i] = wtclay
-                self['WTPYR'][i] = wtpyr
+            if include_qtz:
+                self['VQTZ'][i] = vqtz
+            if include_clc:
+                self['VCLC'][i] = vclc
+            if include_dol:
+                self['VDOL'][i] = vdol
+            if include_x:
+                self['V' + name_log_x] = vx
 
-                if include_qtz:
-                    self['WTQTZ'][i] = wtqtz
-                if include_clc:
-                    self['WTCLC'][i] = wtclc
-                if include_dol:
-                    self['WTDOL'][i] = wtdol
-                if include_x:
-                    self['WT' + name_log_x] = wtx
+            ### weight percent ###
+            self['RHOM'][i] = rhom
+            self['TOC'][i] = toc
+            self['WTCLAY'][i] = wtclay
+            self['WTPYR'][i] = wtpyr
 
-                # find irreducible water if buckles_parameter is specified
-                if buckles_parameter > 0:
-                    sw_irr = buckles_parameter / (phie / (1 - vclay))
-                    bvwi = phie * sw_irr
-                    bvwf = bvw - bvwi
-                    self['BVWI'][i] = bvwi
-                    self['BVWF'][i] = bvwf
+            if include_qtz:
+                self['WTQTZ'][i] = wtqtz
+            if include_clc:
+                self['WTCLC'][i] = wtclc
+            if include_dol:
+                self['WTDOL'][i] = wtdol
+            if include_x:
+                self['WT' + name_log_x] = wtx
 
-                if hc_class == 'OIL':
-                    self['OIP'][i] = oip
+            # find irreducible water if buckles_parameter is specified
+            if buckles_parameter > 0:
+                sw_irr = buckles_parameter / (phie / (1 - vclay))
+                bvwi = phie * sw_irr
+                bvwf = bvw - bvwi
+                self['BVWI'][i] = bvwi
+                self['BVWF'][i] = bvwf
 
-                elif hc_class == 'GAS':
-                    self['GIP_FREE'][i] = gip_free
-                    self['GIP_ADS'][i] = gip_ads
-                    self['GIP'][i] = gip
+            if hc_class == 'OIL':
+                self['OIP'][i] = oip
 
-            ### find irreducible water saturation outside of loop ###
-            ### since parameters depend on calculated values ###
+            elif hc_class == 'GAS':
+                self['GIP_FREE'][i] = gip_free
+                self['GIP_ADS'][i] = gip_ads
+                self['GIP'][i] = gip
 
-            if buckles_parameter < 0:
-                buckles_parameter=np.mean(self['PHIE'][depth_index] * \
-                                        self['SW'][depth_index])
+        ### find irreducible water saturation outside of loop ###
+        ### since parameters depend on calculated values ###
 
-                ir_denom = (self['PHIE'][depth_index] / \
-                        (1 - self['VCLAY'][depth_index]))
-                ir_denom[np.where(ir_denom < 0.001)[0]] = 0.001
-                sw_irr = buckles_parameter / ir_denom
+        if buckles_parameter < 0:
+            buckles_parameter=np.mean(self['PHIE'][depth_index] * \
+                                      self['SW'][depth_index])
 
-                self['BVWI'][depth_index] = \
-                                self['PHIE'][depth_index] * sw_irr
+            ir_denom = (self['PHIE'][depth_index] / \
+                       (1 - self['VCLAY'][depth_index]))
+            ir_denom[np.where(ir_denom < 0.001)[0]] = 0.001
+            sw_irr = buckles_parameter / ir_denom
 
-                self['BVWF'][depth_index] = self['BVW'][depth_index] - \
-                                            self['BVWI'][depth_index]
+            self['BVWI'][depth_index] = \
+                              self['PHIE'][depth_index] * sw_irr
+
+            self['BVWF'][depth_index] = self['BVW'][depth_index] - \
+                                        self['BVWI'][depth_index]
+
+
 
     def write(self, file_path, version = 2.0, wrap = False,
               STRT = None, STOP = None, STEP = None, fmt = '%10.6g', len_numeric_field=15,
