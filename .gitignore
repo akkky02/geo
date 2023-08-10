@@ -4,3 +4,4 @@ edited_las/*.las
 processed_las/*.las
 __pycache__/
 venv/
+data/
