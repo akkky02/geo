@@ -4,7 +4,7 @@ import xml.etree.ElementTree as ET
 import pandas as pd
 import numpy as np
 import datetime as dt
-from scipy.optimize import nnls
+from scipy.optimize import nnls,lsq_linear
 from scipy.signal import lfilter, filtfilt
 
 from lasio import LASFile, CurveItem
@@ -655,12 +655,12 @@ class Log(LASFile):
     passey_baseline_nphi = 0, schmoker_weight = 1,
     schmoker_slope =  0.7257, schmoker_baseline_rhob = 2.6,
     rho_pyr = 5, nphi_pyr = 0.13, pe_pyr = 13, om_pyrite_slope = 0.2,
-    include_qtz = 'YES', rho_qtz = 2.6, nphi_qtz = -2,pe_qtz = 1.81,
-    include_clc = 'YES', rho_clc = 2.7, nphi_clc = 0.05,pe_clc = 5.08,
-    include_dol = 'YES', rho_dol = 2.8, nphi_dol = -0.03, pe_dol = 3.14,
+    include_qtz = 'YES', rho_qtz = 2.65, nphi_qtz = -0.04,pe_qtz = 1.81,
+    include_clc = 'YES', rho_clc = 2.71, nphi_clc = 0,pe_clc = 5.08,
+    include_dol = 'YES', rho_dol = 2.85, nphi_dol = 0.04, pe_dol = 3.14,
     include_x = 'NO',name_x = 'Gypsum', name_log_x = 'GYP', rho_x = 2.35,
     nphi_x = 0.507, pe_x = 4.04, pe_fl = 0, m = 2, n = 2, a = 1,
-    archie_weight = 0, indonesia_weight = 1, simandoux_weight = 0,
+    archie_weight = 1, indonesia_weight = 0, simandoux_weight = 0,
     modified_simandoux_weight = 0, waxman_smits_weight = 0, cec = -1,
     buckles_parameter = -1):
         """
@@ -1568,7 +1568,7 @@ class Log(LASFile):
                 c_clean = np.vstack((c_clean.T,
                                      np.ones_like(c_clean.T[0])))
 
-                bv_clean = nnls(c_clean, l_clean.T)[0]
+                bv_clean = lsq_linear(c_clean, l_clean.T, bounds=(0, 1)).x
 
                 bvqtz = 0
                 bvclc = 0
@@ -1854,7 +1854,7 @@ class Log(LASFile):
 
 
     def write(self, file_path, version = 2.0, wrap = False,
-              STRT = None, STOP = None, STEP = None, fmt = '%10.6g', len_numeric_field=15,
+              STRT = None, STOP = None, STEP = None, fmt = '%10.4f', len_numeric_field=15,
                               header_width=80, data_section_header="~A", mnemonics_header=True):
         """
         Writes to las file, and overwrites if file exisits. Uses parent
