@@ -356,7 +356,7 @@
       <Alias>DRH</Alias>
       <Alias>ZCORR</Alias>
     </LogAliasEntry>
-    <LogAliasEntry>
+    <!-- <LogAliasEntry>
       <PrimaryLog>DENWS</PrimaryLog>
       <Alias>RHOB</Alias>
       <Alias>ZDEN</Alias>
@@ -409,7 +409,7 @@
       <Alias>RHOB_FINAL</Alias>
       <Alias>RHOBED</Alias>
       <Alias>RHOBEDIT</Alias>
-    </LogAliasEntry>
+    </LogAliasEntry> -->
     <LogAliasEntry>
       <PrimaryLog>DRESWS</PrimaryLog>
       <Alias>ILD</Alias>
