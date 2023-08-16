@@ -657,7 +657,7 @@ class Log(LASFile):
     rho_pyr = 5, nphi_pyr = 0.13, pe_pyr = 13, om_pyrite_slope = 0.2,
     include_qtz = 'YES', rho_qtz = 2.65, nphi_qtz = -0.04,pe_qtz = 1.81,
     include_clc = 'YES', rho_clc = 2.71, nphi_clc = 0,pe_clc = 5.08,
-    include_dol = 'YES', rho_dol = 2.85, nphi_dol = 0.04, pe_dol = 3.14,
+    include_dol = 'YES', rho_dol = 2.87, nphi_dol = 0.04, pe_dol = 3.14,
     include_x = 'NO',name_x = 'Gypsum', name_log_x = 'GYP', rho_x = 2.35,
     nphi_x = 0.507, pe_x = 4.04, pe_fl = 0, m = 2, n = 2, a = 1,
     archie_weight = 1, indonesia_weight = 0, simandoux_weight = 0,
