@@ -4,7 +4,7 @@ from sklearn.preprocessing import StandardScaler
 from sklearn.decomposition import PCA
 from sklearn.cluster import MiniBatchKMeans
 
-def electrofacies(logs, curves=['GR', 'NPHI', 'RHOB', 'ILD'], n_clusters=6, log_scale=['ILD'],
+def electrofacies(logs, curves=['NPHI', 'RHOB', 'ILD'], n_clusters=6, log_scale=['ILD'],
                   n_components=0.9, curve_name='FACIES'):
 
     # ... (existing code remains the same up to here) ...
