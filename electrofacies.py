@@ -48,7 +48,7 @@ def electrofacies(logs, curves=['NPHI', 'RHOB', 'ILD'], n_clusters=6, log_scale=
         size = 100
 
     combined_df.loc[not_null_rows, curve_name] = MiniBatchKMeans(n_clusters=n_clusters,
-                                                                  batch_size=size).fit_predict(minibatch_input)
+                                                                  batch_size=size,n_init='auto').fit_predict(minibatch_input)
     combined_df.loc[not_null_rows, curve_name] += 1
 
     # Distribute the common classes to individual logs

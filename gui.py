@@ -35,7 +35,7 @@ class ProcessingThread(threading.Thread):
                 log = pet.Log(las_file)
 
                 if precondition:
-                    log.precondition()
+                    log.precondition(drho_matrix=self.parent.drho_matrix, n=self.parent.n)
                 if fluidprop:
                     log.fluid_properties()
                 if multimineral:
@@ -52,31 +52,42 @@ class ProcessingThread(threading.Thread):
                 logging.error(f"An error occurred while processing {las_file}: {str(e)}")
 
             self.parent.update_progress(index + 1, len(las_files))
-
-            # Update the status bar to show progress like "1/4 files"
-            self.parent.update_status_message(f"Processing {index}/{len(las_files)} files")
+            self.parent.update_status_message(f"Processing {index + 1}/{len(las_files)} files")
 
         if electrofacies:
             logs = [pet.Log(x) for x in processed_files]
-
-            # Include the electrofacies processing step in the progress bar
             self.parent.update_progress(len(las_files) + 1, len(las_files) + 1)
 
-            combined_logs = ef.electrofacies(logs=logs,)
+            curves = []
+            if self.parent.nphi_checkbox.isChecked():
+                curves.append('NPHI')
+            if self.parent.rhob_checkbox.isChecked():
+                curves.append('RHOB')
+            if self.parent.ild_checkbox.isChecked():
+                curves.append('ILD')
+            if self.parent.gr_checkbox.isChecked():
+                curves.append('GR')
+            if self.parent.pe_checkbox.isChecked():
+                curves.append('PE')
+            if self.parent.dt_checkbox.isChecked():
+                curves.append('DT')
+            
+            combined_logs = ef.electrofacies(logs=logs, curves=curves, n_clusters=self.parent.n_clusters)
 
             for i, log in enumerate(combined_logs):
-                log.write(processed_files[i])  # Overwrite the processed file with electrofacies results
+                log.write(processed_files[i])
 
-            # Update the status bar for electrofacies step
             self.parent.update_status_message(f"Processing Electrofacies (Step {len(las_files) + 1}/{len(las_files) + 1})")
 
         self.parent.processing_completed()
-        # Update the status bar to show completion status
         self.parent.update_status_message("Processing completed!")
 
 class ProcessingGUI(QMainWindow):
     def __init__(self):
         super().__init__()
+        self.drho_matrix = 2.71
+        self.n = 7
+        self.n_clusters = 6
         self.initUI()
 
     def initUI(self):
@@ -90,10 +101,30 @@ class ProcessingGUI(QMainWindow):
         self.dest_folder_button = QPushButton('Browse')
         self.dest_folder_button.clicked.connect(self.browseDestFolder)
 
+        self.drho_matrix_label = QLabel('drho_matrix: for sandstone = 2.65, for dolomite = 2.87, for limestone = 2.71')
+        self.drho_matrix_input = QLineEdit(str(self.drho_matrix))
+
+        self.n_label = QLabel('n: apply lfilter lower n less smoothing higher n more smoothing')
+        self.n_input = QLineEdit(str(self.n))
+
+        self.n_clusters_label = QLabel('n_clusters:')
+        self.n_clusters_input = QLineEdit(str(self.n_clusters))
+
         self.precondition_checkbox = QCheckBox('Apply Precondition')
         self.fluidprop_checkbox = QCheckBox('Apply Fluid Properties')
         self.multimineral_checkbox = QCheckBox('Apply Multimineral Model')
         self.electrofacies_checkbox = QCheckBox('Apply Electrofacies')
+
+        self.curves_label = QLabel('Curves: Check the curves you want to use for electrofacies')
+        self.nphi_checkbox = QCheckBox('NPHI')
+        self.nphi_checkbox.setChecked(True)  # Check this box by default
+        self.rhob_checkbox = QCheckBox('RHOB')
+        self.rhob_checkbox.setChecked(True)  # Check this box by default
+        self.ild_checkbox = QCheckBox('ILD')
+        self.ild_checkbox.setChecked(True)  # Check this box by default
+        self.gr_checkbox = QCheckBox('GR')
+        self.pe_checkbox = QCheckBox('PE')
+        self.dt_checkbox = QCheckBox('DT')
 
         self.process_button = QPushButton('Process')
         self.process_button.clicked.connect(self.processFiles)
@@ -106,9 +137,22 @@ class ProcessingGUI(QMainWindow):
         layout.addWidget(self.dest_folder_input)
         layout.addWidget(self.dest_folder_button)
         layout.addWidget(self.precondition_checkbox)
+        layout.addWidget(self.drho_matrix_label)
+        layout.addWidget(self.drho_matrix_input)
+        layout.addWidget(self.n_label)
+        layout.addWidget(self.n_input)
         layout.addWidget(self.fluidprop_checkbox)
         layout.addWidget(self.multimineral_checkbox)
         layout.addWidget(self.electrofacies_checkbox)
+        layout.addWidget(self.n_clusters_label)
+        layout.addWidget(self.n_clusters_input)
+        layout.addWidget(self.curves_label)
+        layout.addWidget(self.nphi_checkbox)
+        layout.addWidget(self.rhob_checkbox)
+        layout.addWidget(self.ild_checkbox)
+        layout.addWidget(self.gr_checkbox)
+        layout.addWidget(self.pe_checkbox)
+        layout.addWidget(self.dt_checkbox)
         layout.addWidget(self.process_button)
 
         widget = QWidget()
@@ -116,13 +160,11 @@ class ProcessingGUI(QMainWindow):
         self.setCentralWidget(widget)
 
         self.setWindowTitle('Log Processing GUI')
-        self.setGeometry(200, 200, 400, 300)
+        self.setGeometry(200, 200, 400, 500)
 
-        # Create and set up the status bar
         self.status_bar = QStatusBar()
         self.setStatusBar(self.status_bar)
 
-        # Create and set up the progress bar
         self.progress_bar = QProgressBar()
         self.status_bar.addWidget(self.progress_bar)
 
@@ -135,11 +177,14 @@ class ProcessingGUI(QMainWindow):
         self.dest_folder_input.setText(folder)
 
     def processFiles(self):
-        self.process_button.setEnabled(False)  # Disable the process button while processing
+        self.process_button.setEnabled(False)
         self.progress_bar.setValue(0)
-        self.progress_bar.setMaximum(1)  # Set a temporary max value
+        self.progress_bar.setMaximum(1)
 
-        # Create an instance of the processing thread and start it
+        self.drho_matrix = float(self.drho_matrix_input.text())
+        self.n = int(self.n_input.text())
+        self.n_clusters = int(self.n_clusters_input.text())
+
         self.process_thread = ProcessingThread(self)
         self.process_thread.start()
 
@@ -152,9 +197,11 @@ class ProcessingGUI(QMainWindow):
 
     def processing_completed(self):
         self.progress_bar.setValue(self.progress_bar.maximum())
-        self.process_button.setEnabled(True)  # Re-enable the process button
+        self.process_button.setEnabled(True)
 
-# ... (Your existing __main__ block)
+# Configure the logger
+logging.basicConfig(level=logging.ERROR, filename='error_log/error.log',
+                    format='%(asctime)s - %(message)s')
 
 if __name__ == '__main__':
     app = QApplication(sys.argv)
