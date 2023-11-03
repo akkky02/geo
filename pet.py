@@ -50,7 +50,32 @@ class Log(LASFile):
         if file_ref is not None:
             LASFile.__init__(self, file_ref = file_ref,
                              autodetect_encoding = True, **kwargs)
+            
+            # Get the base name of the file
+            file_name = os.path.basename(file_ref)
 
+            # Find a sequence of 10 or 14 digits in the file name
+            file_api = re.findall(r'\d{10}(?:\d{4})?', file_name)
+
+            # for api in file_api:
+            #     print('API number found in log loaded from %s: %s' % (file_name, api))
+
+            # If both API and UWI are not present in the well header, use the API from the file name
+            if not self.well.API.value and not self.well.UWI.value and file_api:
+                self.well.API.value = file_api[0].ljust(14, '0')
+                self.well.UWI.value = file_api[0].ljust(14, '0')
+
+            # Clean API value
+            if len(self.header['Well']['API'].value) != 14 or '-' in self.header['Well']['API'].value :
+                if self.header['Well']['UWI'].value and len(self.header['Well']['UWI'].value) == 14:
+                    self.header['Well']['API'].value = self.header['Well']['UWI'].value
+                self.header['Well']['API'].value = self.header['Well']['API'].value.replace('-', '').replace(' ', '').ljust(14, '0')
+
+            # Clean UWI value
+            if len(self.header['Well']['UWI'].value) != 14 or '-' in self.header['Well']['UWI'].value:
+                if self.header['Well']['API'].value and len(self.header['Well']['API'].value) == 14:
+                    self.header['Well']['UWI'].value = self.header['Well']['API'].value
+                self.header['Well']['UWI'].value = self.header['Well']['UWI'].value.replace('-', '').replace(' ', '').ljust(14, '0')
         # self.precondition(drho_matrix = drho_matrix)
 
         # self.fluid_properties_parameters_from_csv()
@@ -114,6 +139,15 @@ class Log(LASFile):
                 self.append_curve('RHOB', calculated_rho, unit='g/cc',
                                 value='',
                                 descr='Calculated bulk density from density porosity assuming rho matrix = %.2f' % drho_matrix)
+        
+        if 'RHOB' in self.keys() and 'DPHI' not in self.keys():
+                non_null_depth_mask = (self['RHOB'] != self.well.NULL.value)
+                non_null_depths = self['RHOB'][non_null_depth_mask]
+                calculated_phi = np.empty(len(self[0]))
+                calculated_phi[non_null_depth_mask] = (drho_matrix - non_null_depths) / (drho_matrix - 1)
+                self.append_curve('DPHI', calculated_phi, unit='v/v',
+                                value='',
+                                descr='Calculated density porosity from bulk density assuming rho matrix = %.2f' % drho_matrix)
 
         # Filter the curves to keep only those that are in standard_curves list
         standard_curves = ['GR', 'NPHI', 'RHOB', 'ILD', 'PE', 'DT']

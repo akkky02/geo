@@ -86,7 +86,7 @@ class ProcessingGUI(QMainWindow):
     def __init__(self):
         super().__init__()
         self.drho_matrix = 2.71
-        self.n = 7
+        self.n = 1
         self.n_clusters = 6
         self.initUI()
 
@@ -110,7 +110,7 @@ class ProcessingGUI(QMainWindow):
         self.n_clusters_label = QLabel('n_clusters:')
         self.n_clusters_input = QLineEdit(str(self.n_clusters))
 
-        self.precondition_checkbox = QCheckBox('Apply Precondition')
+        self.precondition_checkbox = QCheckBox('Apply Precondition (Standardize Curves)')
         self.fluidprop_checkbox = QCheckBox('Apply Fluid Properties')
         self.multimineral_checkbox = QCheckBox('Apply Multimineral Model')
         self.electrofacies_checkbox = QCheckBox('Apply Electrofacies')
